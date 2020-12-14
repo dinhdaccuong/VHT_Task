@@ -14,27 +14,33 @@
 using namespace std;
 using namespace cv;
 
+#define USING_OPENCV                1
+
+
 #define PORT                        8888
 #define SERVER_IP_ADDRESS           "127.0.0.1"             
-#define USING_OPENCV                1
+
 
 #define PATH_TO_VIDEO               "/home/cuongd/CuongD/VHT_Task/small.avi"
 #define PATH_TO_IMAGE               "/home/cuongd/CuongD/VHT_Task/size.jpeg"
 
 typedef struct
 {
-    uint32_t heigh;
+    uint32_t height;
     uint32_t width;
 } frame_info;
 
 int connect_to_server(int socket,const char* server_ip);
 int split_video_to_frame(const char* path_to_video, vector<Mat> &vect_frames);
 int show_video_from_frames(vector<Mat> &vect_frames);
-int send_start_signal(int socket,  frame_info frame_i, int brightness = 20);
+int send_start_signal(int socket,  frame_info& frame_i, int brightness = 20);
 int send_stop_signal(int socket);
 int send_data_frame(int socket, Mat &frame);
 
+void print_chars(const char* chars, int n_char);
 void convert_int_to_chars(char* chars, int num, int pos = 0);
+int convert_chars_to_int(const char* chars, int pos = 0);
+
 
 int get_frame_info_from_video(const char* path, frame_info& p_info);
 int get_video_fps(const char* path);
@@ -45,8 +51,20 @@ void bin(char c);
 int main()
 {
     int socket_to_connect = 0;
+    frame_info f_infor;
+    if(get_frame_info_from_video(PATH_TO_VIDEO, f_infor))
+    {
+        printf("Get frame infor error\n");
+        return 1;
+    }
 #if USING_OPENCV
     socket_to_connect = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if(socket_to_connect < 0)
+    {
+        printf("Create socket error\n");
+        return 1;
+    }
+
     if(socket_to_connect < 0)
     {
         printf("Could not create socket\n");
@@ -58,11 +76,13 @@ int main()
         printf("Connect error\n");
         return 1;
     }
-    frame_info f_infor;
-    get_frame_info_from_video(PATH_TO_VIDEO, f_infor);
-    send_start_signal(socket_to_connect, f_infor);
-#endif
 
+    if(send_start_signal(socket_to_connect, f_infor))
+    {
+        printf("Send start signal error\n");
+        return 1;
+    }
+ #endif
 }
 
 int get_video_fps(const char* path)
@@ -80,6 +100,14 @@ int get_video_fps(const char* path)
 
     return fps;
 }
+void print_chars(const char* chars, int n_char)
+{
+    for(int i = 0; i < n_char; i ++)
+    {
+        printf("%c", chars[i] + 48);
+    }
+    printf("\n");
+}
 
 int get_frame_info_from_video(const char* path, frame_info& p_info)
 {
@@ -88,16 +116,17 @@ int get_frame_info_from_video(const char* path, frame_info& p_info)
     {
         return 1;
     }
-    p_info.heigh = cap.get(CAP_PROP_FRAME_HEIGHT);
+    p_info.height = cap.get(CAP_PROP_FRAME_HEIGHT);
     p_info.width = cap.get(CAP_PROP_FRAME_WIDTH);
 
     cap.release();
     return 0;
 }
 
+
 void convert_int_to_chars(char* chars, int num, int pos)
 {
-    memset(chars, 0, sizeof(int));
+    memset(chars, pos, sizeof(int));
     for(int i = sizeof(int) - 1; i >= 0; i--)
     {
         chars[i + pos] = num;
@@ -105,13 +134,18 @@ void convert_int_to_chars(char* chars, int num, int pos)
     }
 }
 
-int send_start_signal(int socket, frame_info frame_i, int brightness)
+int send_start_signal(int socket, frame_info& frame_i, int brightness)
 {
     char start_squence[9];
-    convert_int_to_chars(start_squence, frame_i.heigh, 0);      // byte tu 0-3
-    convert_int_to_chars(start_squence, frame_i.heigh, 4);      // byte tu 4-7
-    start_squence[8] = (char)(brightness);
-    if(send(socket, start_squence, 9, 0))
+    convert_int_to_chars(start_squence, frame_i.height);      // byte tu 0-3
+    //printf("Frame height: %d\n", convert_chars_to_int(start_squence));
+    convert_int_to_chars(start_squence, frame_i.width, 4);      // byte tu 4-7
+    //printf("Frame width: %d\n", convert_chars_to_int(start_squence, 4));
+    start_squence[8] = 17;
+
+    print_chars(start_squence, 9);
+
+    if(send(socket, start_squence, 9, 0) < 0)
     {
         return 1;
     }
@@ -148,7 +182,17 @@ void bin(int n)
 }
  
 
-
+int convert_chars_to_int(const char* chars, int pos)
+{
+    int num = 0;
+    for(int i = 0; i < 4; i++)
+    {
+        num |= chars[i + pos];
+        if(i < 3)
+            num = num << 8;
+    }
+    return num;
+}
 
 int show_video_from_frames(vector<Mat> &vect_frames)
 {
