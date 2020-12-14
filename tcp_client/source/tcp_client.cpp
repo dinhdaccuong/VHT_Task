@@ -45,7 +45,7 @@ void bin(char c);
 int main()
 {
     int socket_to_connect = 0;
-#if !USING_OPENCV
+#if USING_OPENCV
     socket_to_connect = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if(socket_to_connect < 0)
     {
@@ -58,11 +58,10 @@ int main()
         printf("Connect error\n");
         return 1;
     }
+    frame_info f_infor;
+    get_frame_info_from_video(PATH_TO_VIDEO, f_infor);
+    send_start_signal(socket_to_connect, f_infor);
 #endif
-
-   printf("%d\n", get_video_fps(PATH_TO_VIDEO));
-
-   return 0;
 
 }
 

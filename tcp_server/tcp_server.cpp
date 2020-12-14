@@ -92,13 +92,27 @@ void *connection_handler(void *socket_desc)
     char data_to_send[1024];
     strcpy(data_to_send, "Phan Thu Hang");
     printf("Connection handler socket: %d\n", socket);
+    int n_data = 0;
+    int exit = 0;
     while (1)
     {
 
-        if (recv(socket, data_to_receicve, 1024, 0) > 0)
+        n_data = recv(socket, data_to_receicve, 1024, 0);
+        switch (n_data)
         {
-            puts(data_to_receicve);
+        case 9:             // start signal
+            printf("Start signal\n");
+            exit = 1;
+            break;
+        
+        default:
+            break;
         }
+
+        if(exit)
+            break;
+
+            
         usleep(10);
     }
 }
