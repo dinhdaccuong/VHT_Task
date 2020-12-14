@@ -14,7 +14,7 @@
 #define PORT 8888
 #define BUFFER_TO_RECEIVE_SIZE 1024
 #define MAX_CLIENT 10
-
+ 
 
 int n_client = 0; // number of client
 
