@@ -1,0 +1,3 @@
+/home/cuongd/CuongD/VHT_Task/tcp_client/CMakeFiles/edit_cache.dir
+/home/cuongd/CuongD/VHT_Task/tcp_client/CMakeFiles/rebuild_cache.dir
+/home/cuongd/CuongD/VHT_Task/tcp_client/CMakeFiles/tcp_client.dir
