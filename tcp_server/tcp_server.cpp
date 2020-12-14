@@ -18,7 +18,7 @@
 
 int n_client = 0; // number of client
 
-pthread_t new_threads[MAX_CLIENT];
+pthread_t new_threads[MAX_CLIENT]; 
 pthread_t main_thread;
 int new_sockets[MAX_CLIENT];
 sockaddr_in sockaddr_clients[MAX_CLIENT];
