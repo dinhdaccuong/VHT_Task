@@ -23,47 +23,34 @@ pthread_t main_thread;
 int new_sockets[MAX_CLIENT];
 sockaddr_in sockaddr_clients[MAX_CLIENT];
 
-int socket_desc;
-
 void *connection_handler(void *socket_desc);
 void clear_all(int sign_num);
-
+int init_server(int socket);
 int main()
 {
     signal(SIGINT, clear_all);
-    main_thread = pthread_self();
-    int sizeof_sockaddr_in = 0;
-    struct sockaddr_in server;
 
-    // Create socket
-    socket_desc = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); // TCP/IP, IPPROTO_TCP
-    if (socket_desc == -1)
+    int sizeof_sockaddr_in = 0;
+    int server_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); // TCP/IP, IPPROTO_TCP
+    if (socket < 0)
     {
         printf("Couldc not reate socket\n");
         return 1;
     }
-    printf("Create socket successfully\n");
-    // sockaddr_in init
-    server.sin_family = AF_INET;
-    server.sin_port = htons(PORT);
-    server.sin_addr.s_addr = INADDR_ANY;
 
-    // Bind
-    if (bind(socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0)
+    if(init_server(server_socket))
     {
-        printf("Socket bind failed\n");
+        printf("Init server failed\n");
         return 1;
     }
-    printf("Bind socket successfully\n");
-
     printf("Waiting for incoming connections...\n");
-    listen(socket_desc, 3);
+
 
     sizeof_sockaddr_in = sizeof(struct sockaddr_in);
 
     while (1)
     {
-        new_sockets[n_client] = accept(socket_desc, (struct sockaddr *)&sockaddr_clients[n_client], (socklen_t *)&sizeof_sockaddr_in);
+        new_sockets[n_client] = accept(server_socket, (struct sockaddr *)&sockaddr_clients[n_client], (socklen_t *)&sizeof_sockaddr_in);
         if (new_sockets[n_client] > 0)
         {
             if (pthread_create(&new_threads[n_client], NULL, connection_handler, &new_sockets[n_client]) < 0)
@@ -76,6 +63,25 @@ int main()
     }
 
     printf("END\n");
+
+    return 0;
+}
+
+int init_server(int server_socket)
+{
+    struct sockaddr_in server;
+    // sockaddr_in init
+    server.sin_family = AF_INET;
+    server.sin_port = htons(PORT);
+    server.sin_addr.s_addr = INADDR_ANY;
+
+        // Bind
+    if (bind(server_socket, (struct sockaddr *)&server, sizeof(server)) < 0)
+    {
+        printf("Socket bind failed\n");
+        return 1;
+    }
+    listen(server_socket, 3);
 
     return 0;
 }
@@ -92,7 +98,6 @@ void *connection_handler(void *socket_desc)
         if (recv(socket, data_to_receicve, 1024, 0) > 0)
         {
             puts(data_to_receicve);
-            send(socket, data_to_send, 1024, 0);
         }
         usleep(10);
     }
