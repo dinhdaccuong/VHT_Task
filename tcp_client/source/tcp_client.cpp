@@ -16,6 +16,8 @@ using namespace cv;
 
 #define USING_OPENCV                1
 
+#define TOTAL_BYTE_START_SIGNAL     13
+#define TOTAL_BYTE_STOP_SIGNAL      10
 
 #define PORT                        8888
 #define SERVER_IP_ADDRESS           "127.0.0.1"             
@@ -26,8 +28,9 @@ using namespace cv;
 
 typedef struct
 {
-    uint32_t height;
-    uint32_t width;
+    int height;
+    int width;
+    int total_of_frame;
 } frame_info;
 
 int connect_to_server(int socket,const char* server_ip);
@@ -50,6 +53,7 @@ void bin(char c);
 
 int main()
 {
+    
     int socket_to_connect = 0;
     frame_info f_infor;
     if(get_frame_info_from_video(PATH_TO_VIDEO, f_infor))
@@ -83,6 +87,9 @@ int main()
         return 1;
     }
  #endif
+
+    return 0;
+
 }
 
 int get_video_fps(const char* path)
@@ -118,6 +125,7 @@ int get_frame_info_from_video(const char* path, frame_info& p_info)
     }
     p_info.height = cap.get(CAP_PROP_FRAME_HEIGHT);
     p_info.width = cap.get(CAP_PROP_FRAME_WIDTH);
+    p_info.total_of_frame = cap.get(CAP_PROP_FRAME_COUNT);
 
     cap.release();
     return 0;
@@ -126,7 +134,6 @@ int get_frame_info_from_video(const char* path, frame_info& p_info)
 
 void convert_int_to_chars(char* chars, int num, int pos)
 {
-    memset(chars, pos, sizeof(int));
     for(int i = sizeof(int) - 1; i >= 0; i--)
     {
         chars[i + pos] = num;
@@ -134,18 +141,36 @@ void convert_int_to_chars(char* chars, int num, int pos)
     }
 }
 
+int convert_chars_to_int(const char* chars, int pos)
+{
+    int num = 0;
+    int temp = 0;
+    for(int i = 0; i < 4; i++)
+    {
+        temp |= chars[i + pos];
+        temp &= 0x000000FF;
+        num |= temp;
+
+        if(i < 3)
+        {
+            num = num << 8;
+        }
+        temp = 0;      
+    }
+    return num;
+}
+
+
 int send_start_signal(int socket, frame_info& frame_i, int brightness)
 {
-    char start_squence[9];
+    char start_squence[13];
+    memset(start_squence, 0, 13);
     convert_int_to_chars(start_squence, frame_i.height);      // byte tu 0-3
-    //printf("Frame height: %d\n", convert_chars_to_int(start_squence));
     convert_int_to_chars(start_squence, frame_i.width, 4);      // byte tu 4-7
-    //printf("Frame width: %d\n", convert_chars_to_int(start_squence, 4));
-    start_squence[8] = 17;
+    convert_int_to_chars(start_squence, frame_i.total_of_frame, 8);
+    start_squence[12] = brightness;
 
-    print_chars(start_squence, 9);
-
-    if(send(socket, start_squence, 9, 0) < 0)
+    if(send(socket, start_squence, TOTAL_BYTE_START_SIGNAL, 0) < 0)
     {
         return 1;
     }
@@ -182,17 +207,6 @@ void bin(int n)
 }
  
 
-int convert_chars_to_int(const char* chars, int pos)
-{
-    int num = 0;
-    for(int i = 0; i < 4; i++)
-    {
-        num |= chars[i + pos];
-        if(i < 3)
-            num = num << 8;
-    }
-    return num;
-}
 
 int show_video_from_frames(vector<Mat> &vect_frames)
 {

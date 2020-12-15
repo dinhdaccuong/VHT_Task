@@ -9,21 +9,53 @@
 #include <pthread.h>
 #include <cstdlib>
 #include <signal.h>
+#include <stdint.h>
+#include <queue>
+
+using namespace std;
+
+#define TEST                                0
+#define DEBUG                               1
 
 
-#define TEST 0
 
-#define PORT 8888
-#define BUFFER_TO_RECEIVE_SIZE 1024 
-#define MAX_CLIENT 10
+#define PORT                                8888
+#define MAX_CLIENT                          10
 
-
+#define TOTAL_BYTE_START_SIGNAL             13
+#define BYTE_HEIGHT_DATA_RECEIVE            0
+#define BYTE_WIDTH_DATA_RECEIVE             4
+#define BYTE_NFRAME_DATA_RECEIVE            8
+#define BYTE_BRIHTNESS_DATA_RECEIVE         12
 int n_client = 0; // number of client
 
-pthread_t new_threads[MAX_CLIENT]; 
-pthread_t main_thread; 
-int new_sockets[MAX_CLIENT];
+typedef struct
+{
+    int height;
+    int width;
+    int total_of_frame;
+} frame_info_t;
+
+typedef struct
+{
+    uint8_t* p_data;
+    uint32_t n_data;
+} data_t;
+
+typedef struct 
+{
+    queue<data_t>       q_data;      // Hang doi luu lieu
+    pthread_t*          subthread;   // Thread con
+    pthread_mutex_t     mt_lock;     // mutex
+    frame_info_t        frame_info;  // Thong tin frame
+    int                 brightness;  // Do sang
+    int                 client_id;
+    int                 socket;
+} thread_arg_t;
+
+pthread_t new_threads[MAX_CLIENT];  
 sockaddr_in sockaddr_clients[MAX_CLIENT];
+thread_arg_t thread_args[MAX_CLIENT];
 
 void *connection_handler(void *socket_desc);
 void clear_all(int sign_num);
@@ -34,6 +66,7 @@ void convert_int_to_chars(char* chars, int num, int pos = 0);
 
 
 void print_chars(const char* chars, int n_char);
+void* send_data_to_client(void *data);
 
 int main()
 {
@@ -57,13 +90,15 @@ int main()
 
 
     sizeof_sockaddr_in = sizeof(struct sockaddr_in);
-
+    int socket_client = 0;
     while (1)
     {
-        new_sockets[n_client] = accept(server_socket, (struct sockaddr *)&sockaddr_clients[n_client], (socklen_t *)&sizeof_sockaddr_in);
-        if (new_sockets[n_client] > 0)
+        socket_client = accept(server_socket, (struct sockaddr *)&sockaddr_clients[n_client], (socklen_t *)&sizeof_sockaddr_in);
+        if (socket_client)
         {
-            if (pthread_create(&new_threads[n_client], NULL, connection_handler, &new_sockets[n_client]) < 0)
+            thread_args[n_client].client_id = n_client;
+            thread_args[n_client].socket = socket_client;
+            if (pthread_create(&new_threads[n_client], NULL, connection_handler, &thread_args[n_client]) < 0)
             {
                 printf("Create thread failed\n");
                 continue;
@@ -73,20 +108,12 @@ int main()
     }
 
 #endif
-    // char p[4];
-    // int num = 320;
-    // convert_int_to_chars(p, num, 0);
-    // int num2 = convert_chars_to_int(p, 0);
-
-    // printf("%d\n", num2);
-    // printf("END\n");
 
     return 0;
 }
 
 void convert_int_to_chars(char* chars, int num, int pos)
 {
-    memset(chars, 0, sizeof(int));
     for(int i = sizeof(int) - 1; i >= 0; i--)
     {
         chars[i + pos] = num;
@@ -97,14 +124,22 @@ void convert_int_to_chars(char* chars, int num, int pos)
 int convert_chars_to_int(const char* chars, int pos)
 {
     int num = 0;
+    int temp = 0;
     for(int i = 0; i < 4; i++)
     {
-        num |= chars[i + pos];
+        temp |= chars[i + pos];
+        temp &= 0x000000FF;
+        num |= temp;
+
         if(i < 3)
+        {
             num = num << 8;
+        }
+        temp = 0;      
     }
     return num;
 }
+
 
 int init_server(int server_socket)
 {
@@ -124,28 +159,38 @@ int init_server(int server_socket)
 
     return 0;
 }
-void *connection_handler(void *socket_desc)
+
+void* send_data_to_client(void *data)
 {
-    int socket = *(int *)socket_desc;
-    char data_to_receicve[1024];
-    char data_to_send[1024];
-    strcpy(data_to_send, "Phan Thu Hang");
-    printf("Connection handler socket: %d\n", socket);
+
+}
+
+void *connection_handler(void *ta)
+{
+    thread_arg_t* this_ta = (thread_arg_t*)ta;
+
+    char data_to_receive[16];
+    printf("Connection handler socket: %d\n", this_ta->socket);
     int n_data = 0;
     int exit = 0;
     while (1)
     {
 
-        n_data = recv(socket, data_to_receicve, 1024, 0);
+        n_data = recv(this_ta->socket, data_to_receive, 16, 0);
         switch (n_data)
         {
-        case 9:             // start signal
+        case TOTAL_BYTE_START_SIGNAL:             // start signal
+            this_ta->frame_info.height = convert_chars_to_int(data_to_receive);
+            this_ta->frame_info.width = convert_chars_to_int(data_to_receive, BYTE_WIDTH_DATA_RECEIVE);
+            this_ta->frame_info.total_of_frame = convert_chars_to_int(data_to_receive, BYTE_NFRAME_DATA_RECEIVE);
+            this_ta->brightness = data_to_receive[BYTE_BRIHTNESS_DATA_RECEIVE];
+#if DEBUG
             printf("Start signal\n");
-            // printf("     frame height: %d\n", convert_chars_to_int(data_to_receicve));
-            // printf("     frame width:  %d\n", convert_chars_to_int(data_to_receicve, 4));
-            // printf("     brightness:   %d\n", (int)data_to_receicve[9]);
-            print_chars(data_to_receicve, 9);
-
+            printf("     frame height: %d\n", this_ta->frame_info.height);
+            printf("     frame width:  %d\n", this_ta->frame_info.width);
+            printf("     number of frame: %d\n",this_ta->frame_info.total_of_frame);
+            printf("     brightness:   %d\n", this_ta->brightness);
+#endif
             exit = 1;
             break;
         
@@ -166,8 +211,9 @@ void clear_all(int sign_num)
     printf("Preparing to exit program.....\n");
     for(int i = 0; i < n_client; i++)
     {
+        //pthread_cancel(*(thread_args[i].subthread));
         pthread_cancel(new_threads[i]);
-        close(new_sockets[i]);
+        close(thread_args[i].socket);
     }
     exit(0);
 }
