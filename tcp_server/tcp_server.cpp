@@ -14,7 +14,7 @@
 
 using namespace std;
 
-#define TEST                                0
+#define TEST                                1
 #define DEBUG                               1
 
 
@@ -27,6 +27,10 @@ using namespace std;
 #define BYTE_WIDTH_DATA_RECEIVE             4
 #define BYTE_NFRAME_DATA_RECEIVE            8
 #define BYTE_BRIHTNESS_DATA_RECEIVE         12
+
+#define TOTAL_BYTE_STOP_SIGNAL              1
+
+
 int n_client = 0; // number of client
 
 typedef struct
@@ -38,7 +42,7 @@ typedef struct
 
 typedef struct
 {
-    uint8_t* p_data;
+    uint8_t* data;
     uint32_t n_data;
 } data_t;
 
@@ -49,8 +53,13 @@ typedef struct
     pthread_mutex_t     mt_lock;     // mutex
     frame_info_t        frame_info;  // Thong tin frame
     int                 brightness;  // Do sang
+    int                 total_pixel;
     int                 client_id;
     int                 socket;
+    void cal_total_pixel()
+    {
+        total_pixel = frame_info.height * frame_info.width;
+    }
 } thread_arg_t;
 
 pthread_t new_threads[MAX_CLIENT];  
@@ -67,6 +76,8 @@ void convert_int_to_chars(char* chars, int num, int pos = 0);
 
 void print_chars(const char* chars, int n_char);
 void* send_data_to_client(void *data);
+void incrase_brightness(uint8_t* image, int size, int brightness);
+uint8_t saturate_cast(uint8_t num, float mul);
 
 int main()
 {
@@ -108,8 +119,6 @@ int main()
     }
 
 #endif
-
-    return 0;
 }
 
 void convert_int_to_chars(char* chars, int num, int pos)
@@ -160,8 +169,52 @@ int init_server(int server_socket)
     return 0;
 }
 
+uint8_t saturate_cast(uint8_t num, float mul)
+{
+    if(num * mul > 255) 
+        return 255;
+    return num * mul;
+}
+
+void incrase_brightness(uint8_t* image, int img_size, int brightness)
+{
+    for(int i = 0; i < img_size; i++)
+    {
+        image[i] = saturate_cast(image[i], brightness/100.0);
+    }
+}
+
+
 void* send_data_to_client(void *data)
 {
+    int n_frame_sent = 0;
+    thread_arg_t* this_ta = (thread_arg_t*)data;
+    int timeout = 0;
+    while (1)
+    {
+        if(n_frame_sent == this_ta->frame_info.total_of_frame)
+        {
+            break;
+        }
+
+        pthread_mutex_lock(&(this_ta->mt_lock));
+        
+        if(!this_ta->q_data.empty())
+        {
+            incrase_brightness(this_ta->q_data.front().data, this_ta->total_pixel, this_ta->brightness / 100.0);
+
+            if(!send(this_ta->socket, this_ta->q_data.front().data, this_ta->total_pixel, 0))
+            {
+                return NULL;
+            } 
+            delete(this_ta->q_data.front().data);         // Xoa vung nho da cap phat
+            this_ta->q_data.pop();                        // Xoa phan tu da xu ly
+            n_frame_sent++;
+        }
+
+        pthread_mutex_unlock(&(this_ta->mt_lock));       
+    }
+    
 
 }
 
@@ -169,21 +222,31 @@ void *connection_handler(void *ta)
 {
     thread_arg_t* this_ta = (thread_arg_t*)ta;
 
-    char data_to_receive[16];
+    char* p_data = new char[16];
     printf("Connection handler socket: %d\n", this_ta->socket);
     int n_data = 0;
+    int total_of_pixel = 0;
     int exit = 0;
+    pthread_t send_data_thread;     // Tao thread xu ly va gui du lieu ve client
+
     while (1)
     {
 
-        n_data = recv(this_ta->socket, data_to_receive, 16, 0);
+        n_data = recv(this_ta->socket, p_data, 16, 0);
         switch (n_data)
         {
         case TOTAL_BYTE_START_SIGNAL:             // start signal
-            this_ta->frame_info.height = convert_chars_to_int(data_to_receive);
-            this_ta->frame_info.width = convert_chars_to_int(data_to_receive, BYTE_WIDTH_DATA_RECEIVE);
-            this_ta->frame_info.total_of_frame = convert_chars_to_int(data_to_receive, BYTE_NFRAME_DATA_RECEIVE);
-            this_ta->brightness = data_to_receive[BYTE_BRIHTNESS_DATA_RECEIVE];
+            this_ta->frame_info.height = convert_chars_to_int(p_data);
+            this_ta->frame_info.width = convert_chars_to_int(p_data, BYTE_WIDTH_DATA_RECEIVE);
+            this_ta->frame_info.total_of_frame = convert_chars_to_int(p_data, BYTE_NFRAME_DATA_RECEIVE);
+            this_ta->cal_total_pixel();
+            this_ta->brightness = p_data[BYTE_BRIHTNESS_DATA_RECEIVE];
+            this_ta->subthread = &send_data_thread;
+            delete(p_data);
+            p_data = new char[this_ta->total_pixel];
+            pthread_mutex_init(&(this_ta->mt_lock), NULL);
+            pthread_create(&send_data_thread, NULL, send_data_to_client, this_ta);
+            
 #if DEBUG
             printf("Start signal\n");
             printf("     frame height: %d\n", this_ta->frame_info.height);
@@ -191,17 +254,30 @@ void *connection_handler(void *ta)
             printf("     number of frame: %d\n",this_ta->frame_info.total_of_frame);
             printf("     brightness:   %d\n", this_ta->brightness);
 #endif
+            break;
+
+        case TOTAL_BYTE_STOP_SIGNAL:
+            pthread_join(send_data_thread, NULL);
             exit = 1;
             break;
-        
-        default:
+
+        default:        // Mac dinh la du lieu cua anh
+            data_t image;
+
+            image.data = (uint8_t*)p_data;
+
+            pthread_mutex_lock(&(this_ta->mt_lock));
+
+            this_ta->q_data.push(image);
+            p_data = new char[this_ta->total_pixel];    // cap phat vung nho moi cho lan nhan du lieu sau
+
+            pthread_mutex_unlock(&(this_ta->mt_lock));
+
             break;
         }
 
         if(exit)
             break;
-
-
         usleep(10);
     }
 }

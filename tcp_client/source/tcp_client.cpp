@@ -207,7 +207,6 @@ void bin(int n)
 }
  
 
-
 int show_video_from_frames(vector<Mat> &vect_frames)
 {
     for(int i = 0; i < vect_frames.size(); i++)
