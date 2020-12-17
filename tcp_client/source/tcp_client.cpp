@@ -41,19 +41,19 @@ int socket_to_connect = 0;
 
 int main(int argc, char* argv[])
 {
-    // if(argc != 4)
-    // {
-    //     printf("Command invalid\n");
-    //     return 1;
-    // }
+    if(argc != 4)
+    {
+        printf("Command invalid\n");
+        return 1;
+    }
 
-    // strcpy(server_ip, argv[1]);
-    // strcpy(path_to_video, argv[2]);
-    // strcpy(brightness, argv[3]);
+    strcpy(server_ip, argv[1]);
+    strcpy(path_to_video, argv[2]);
+    strcpy(brightness, argv[3]);
 
 
     
-    if(get_video_info(PATH_TO_VIDEO, video_info))
+    if(get_video_info(path_to_video, video_info))
     {
         printf("Get frame infor error\n");
         return 1;
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    if(connect_to_server(socket_to_connect, SERVER_IP_ADDRESS))
+    if(connect_to_server(socket_to_connect, server_ip))
     {
         printf("Connect error\n");
         return 1;
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
     uint32_t n_data_recv = 0;
     uint32_t n_data_sent = 0;
 
-    if(split_video_to_frame(PATH_TO_VIDEO, vect_images_send) > 0)
+    if(split_video_to_frame(path_to_video, vect_images_send) > 0)
     {
         printf("Split video error\n");
         return 1;
