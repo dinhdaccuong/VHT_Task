@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    if(send_start_signal(socket_to_connect, video_info, 20) > 0)
+    if(send_start_signal(socket_to_connect, video_info, atoi(brightness)) > 0)
     {
         printf("Start signal error\n");
         return 1;

@@ -158,13 +158,12 @@ void *connection_handler(void *ta)
 
         if(frame_count == this_ta->video_info.total_of_frames)
         {    
-            printf("Breackkkkkkkkkkkk\n");
             break;
         }
             
     }
 
-    printf("Endddd\n");
+    printf("Complete client %d\n", this_ta -> client_id);
     delete(data_to_recv);
     close(this_ta->socket);
 }
