@@ -1,77 +1,68 @@
 #include <unistd.h> 
 #include <stdio.h> 
-#include <sys/socket.h> 
+
 #include <stdlib.h> 
-#include <netinet/in.h> 
 #include <string.h>
 #include <ctype.h>
+
+
+#include <sys/socket.h> 
+#include <netinet/in.h> 
 #include <arpa/inet.h>
-#include <string.h>
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/highgui/highgui_c.h>
+
+
+#include "client_define.h"
+#include "client_utils.h"
+#include "communication.h"
+#include <string>
 
 using namespace std;
 using namespace cv;
 
 #define USING_OPENCV                1
 
-#define TOTAL_BYTE_START_SIGNAL     13
-#define TOTAL_BYTE_STOP_SIGNAL      10
+video_info_t video_info;
 
-#define PORT                        8888
-#define SERVER_IP_ADDRESS           "127.0.0.1"             
+char path_to_video[1024];
+char server_ip[20];
+char brightness[5];
 
 
-#define PATH_TO_VIDEO               "/home/cuongd/CuongD/VHT_Task/small.avi"
-#define PATH_TO_IMAGE               "/home/cuongd/CuongD/VHT_Task/size.jpeg"
+void* send_image_to_server(void* data);
 
-typedef struct
+
+void show_image_data(uint8_t* image, uint32_t size);
+void show_image_data(Mat mat, uint32_t size);
+int socket_to_connect = 0;
+
+int main(int argc, char* argv[])
 {
-    int height;
-    int width;
-    int total_of_frame;
-} frame_info;
+    // if(argc != 4)
+    // {
+    //     printf("Command invalid\n");
+    //     return 1;
+    // }
 
-int connect_to_server(int socket,const char* server_ip);
-int split_video_to_frame(const char* path_to_video, vector<Mat> &vect_frames);
-int show_video_from_frames(vector<Mat> &vect_frames);
-int send_start_signal(int socket,  frame_info& frame_i, int brightness = 20);
-int send_stop_signal(int socket);
-int send_data_frame(int socket, Mat &frame);
-
-void print_chars(const char* chars, int n_char);
-void convert_int_to_chars(char* chars, int num, int pos = 0);
-int convert_chars_to_int(const char* chars, int pos = 0);
+    // strcpy(server_ip, argv[1]);
+    // strcpy(path_to_video, argv[2]);
+    // strcpy(brightness, argv[3]);
 
 
-int get_frame_info_from_video(const char* path, frame_info& p_info);
-int get_video_fps(const char* path);
-
-void bin(int n);
-void bin(char c);
-
-int main()
-{
     
-    int socket_to_connect = 0;
-    frame_info f_infor;
-    if(get_frame_info_from_video(PATH_TO_VIDEO, f_infor))
+    if(get_video_info(PATH_TO_VIDEO, video_info))
     {
         printf("Get frame infor error\n");
         return 1;
     }
-#if USING_OPENCV
+
     socket_to_connect = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if(socket_to_connect < 0)
     {
         printf("Create socket error\n");
-        return 1;
-    }
-
-    if(socket_to_connect < 0)
-    {
-        printf("Could not create socket\n");
         return 1;
     }
 
@@ -81,178 +72,120 @@ int main()
         return 1;
     }
 
-    if(send_start_signal(socket_to_connect, f_infor))
+    if(send_start_signal(socket_to_connect, video_info, 20) > 0)
     {
-        printf("Send start signal error\n");
+        printf("Start signal error\n");
         return 1;
     }
- #endif
 
-    return 0;
+    
 
-}
+    uint32_t data_size = video_info.frame_info.total_of_pixels;
+    uint8_t* data_to_send = new uint8_t[data_size];
+    uint8_t* data_to_recv = new uint8_t[data_size];
+    uint8_t** data_to_save = new uint8_t*[data_size];
 
-int get_video_fps(const char* path)
-{
+    vector <Mat> vect_images_recv;
+    vector <Mat> vect_images_send;
+    
+    int frame_count = 0;
+    uint32_t n_data_recv = 0;
+    uint32_t n_data_sent = 0;
 
-    VideoCapture cap(path);
-    if(!cap.isOpened())
+    if(split_video_to_frame(PATH_TO_VIDEO, vect_images_send) > 0)
     {
-        return -1;
-    }
-
-    int fps = cap.get(CAP_PROP_FPS);
-
-    cap.release();
-
-    return fps;
-}
-void print_chars(const char* chars, int n_char)
-{
-    for(int i = 0; i < n_char; i ++)
-    {
-        printf("%c", chars[i] + 48);
-    }
-    printf("\n");
-}
-
-int get_frame_info_from_video(const char* path, frame_info& p_info)
-{
-    VideoCapture cap(path);
-    if(!cap.isOpened())
-    {
-        return 1;
-    }
-    p_info.height = cap.get(CAP_PROP_FRAME_HEIGHT);
-    p_info.width = cap.get(CAP_PROP_FRAME_WIDTH);
-    p_info.total_of_frame = cap.get(CAP_PROP_FRAME_COUNT);
-
-    cap.release();
-    return 0;
-}
-
-
-void convert_int_to_chars(char* chars, int num, int pos)
-{
-    for(int i = sizeof(int) - 1; i >= 0; i--)
-    {
-        chars[i + pos] = num;
-        num = num >> 8;
-    }
-}
-
-int convert_chars_to_int(const char* chars, int pos)
-{
-    int num = 0;
-    int temp = 0;
-    for(int i = 0; i < 4; i++)
-    {
-        temp |= chars[i + pos];
-        temp &= 0x000000FF;
-        num |= temp;
-
-        if(i < 3)
-        {
-            num = num << 8;
-        }
-        temp = 0;      
-    }
-    return num;
-}
-
-
-int send_start_signal(int socket, frame_info& frame_i, int brightness)
-{
-    char start_squence[13];
-    memset(start_squence, 0, 13);
-    convert_int_to_chars(start_squence, frame_i.height);      // byte tu 0-3
-    convert_int_to_chars(start_squence, frame_i.width, 4);      // byte tu 4-7
-    convert_int_to_chars(start_squence, frame_i.total_of_frame, 8);
-    start_squence[12] = brightness;
-
-    if(send(socket, start_squence, TOTAL_BYTE_START_SIGNAL, 0) < 0)
-    {
-        return 1;
-    }
-    return 0;
-}
-int send_stop_signal(int socket)
-{
-
-}
-int send_data_frame(int socket, Mat &frame)
-{
-
-}
-void bin(char c)
-{
-    unsigned int k = 0;
-    for(int x = 0;  x < 8; x++)
-    {
-        k = (c << x) & 0x80;
-        printf("%d", k >> 7);
-    }
-    printf("\n");
-}
-
-void bin(int n)
-{
-    unsigned int k = 0;
-    for(int x = 0;  x < 32; x++)
-    {
-        k = (n << x) & 0x80000000;
-        printf("%d", k >> 31);
-    }
-    printf("\n");
-}
- 
-
-int show_video_from_frames(vector<Mat> &vect_frames)
-{
-    for(int i = 0; i < vect_frames.size(); i++)
-    {
-        imshow("Frame", vect_frames[i]);
-        printf("frame %d\n", i + 1);
-        waitKey(25);
-    }
-    return 0;
-}
-
-int split_video_to_frame(const char* path_to_video, vector<Mat> &vect_frames)
-{
-    VideoCapture cap(path_to_video);
-
-    if(!cap.isOpened())
-    {
+        printf("Split video error\n");
         return 1;
     }
     
-    while(1)
+
+    while (1)
     {
-        Mat frame;
-        cap >> frame;
-        if(frame.empty())
+        
+        memset(data_to_send, 0, data_size);
+        
+        get_bytes_from_frame(data_to_send, vect_images_send[frame_count]);
+        show_image_data(data_to_send, 20);
+        n_data_sent = send_all_data(socket_to_connect, data_to_send, data_size);
+        
+        printf("Dinh Dac Cuong\n"); 
+        
+        printf("n_data_sent = %d\n", n_data_sent);
+
+        if(n_data_sent < 0)
         {
+            printf("Sent image error\n");
+            return 1;
+        }
+        printf("CLIENT: Sent frame %d\n", frame_count + 1);
+
+
+        memset(data_to_recv, 0, data_size);
+        n_data_recv = receive_all_data(socket_to_connect, data_to_recv, data_size);
+        show_image_data(data_to_recv, 20);
+        printf("n_data_recv = %d\n", n_data_recv); 
+        if(n_data_recv != data_size)
+        {
+            printf("Receive errorDDDDDDDD\n");
+            return 1;
+        }
+        printf("CLIENT: Received frame %d\n\n", frame_count + 1);
+
+        data_to_save[frame_count] = new uint8_t[video_info.frame_info.total_of_pixels];
+        
+        
+        copy_array(data_to_save[frame_count], data_to_recv, video_info.frame_info.total_of_pixels);
+
+        Mat mat = Mat(video_info.frame_info.rows, video_info.frame_info.cols, video_info.frame_info.type, data_to_save[frame_count]);
+        vect_images_recv.push_back(mat);
+
+        frame_count++;
+
+        if(frame_count == video_info.total_of_frames)
+        {
+            printf("Break\n");
             break;
         }
-        vect_frames.push_back(frame);
+
     }
+
+
+    printf("COMPELETE!!\n");
+    show_video_from_frames(vect_images_recv);
     
-    cap.release();
-    return 0;
-}
+    waitKey(1000);
 
-int connect_to_server(int socket,const char* server_ip)
-{
-    struct sockaddr_in server;
-    server.sin_addr.s_addr = inet_addr(SERVER_IP_ADDRESS);
-    server.sin_family = AF_INET;
-    server.sin_port = htons(PORT);
 
-    if(connect(socket, (struct sockaddr*)&server, sizeof(server)) < 0)
+    for(int i = 0; i < video_info.total_of_frames; i++)
     {
-        close(socket);
-        return 1;
+        delete(data_to_save[i]);
     }
+
+    delete(data_to_save);
+    delete(data_to_recv);
+    delete(data_to_send);
+    close(socket_to_connect);
+
     return 0;
 }
+
+void show_image_data(uint8_t* image, uint32_t size)
+{
+    printf("[ ");
+    for(uint32_t i = 0; i < size; i++)
+    {
+        printf("%d ", image[i]);
+    }
+    printf(" ]\n");
+}
+
+void show_image_data(Mat mat, uint32_t size)
+{
+    printf("[ ");
+    for(uint32_t i = 0; i < size; i++)
+    {
+        printf("%d ", mat.data[i]);
+    }
+    printf(" ]\n");
+}
+

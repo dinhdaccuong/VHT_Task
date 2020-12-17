@@ -123,6 +123,60 @@ tcp_client/fast:
 	$(MAKE) -f CMakeFiles/tcp_client.dir/build.make CMakeFiles/tcp_client.dir/build
 .PHONY : tcp_client/fast
 
+source/client_utils.o: source/client_utils.cpp.o
+
+.PHONY : source/client_utils.o
+
+# target to build an object file
+source/client_utils.cpp.o:
+	$(MAKE) -f CMakeFiles/tcp_client.dir/build.make CMakeFiles/tcp_client.dir/source/client_utils.cpp.o
+.PHONY : source/client_utils.cpp.o
+
+source/client_utils.i: source/client_utils.cpp.i
+
+.PHONY : source/client_utils.i
+
+# target to preprocess a source file
+source/client_utils.cpp.i:
+	$(MAKE) -f CMakeFiles/tcp_client.dir/build.make CMakeFiles/tcp_client.dir/source/client_utils.cpp.i
+.PHONY : source/client_utils.cpp.i
+
+source/client_utils.s: source/client_utils.cpp.s
+
+.PHONY : source/client_utils.s
+
+# target to generate assembly for a file
+source/client_utils.cpp.s:
+	$(MAKE) -f CMakeFiles/tcp_client.dir/build.make CMakeFiles/tcp_client.dir/source/client_utils.cpp.s
+.PHONY : source/client_utils.cpp.s
+
+source/communication.o: source/communication.cpp.o
+
+.PHONY : source/communication.o
+
+# target to build an object file
+source/communication.cpp.o:
+	$(MAKE) -f CMakeFiles/tcp_client.dir/build.make CMakeFiles/tcp_client.dir/source/communication.cpp.o
+.PHONY : source/communication.cpp.o
+
+source/communication.i: source/communication.cpp.i
+
+.PHONY : source/communication.i
+
+# target to preprocess a source file
+source/communication.cpp.i:
+	$(MAKE) -f CMakeFiles/tcp_client.dir/build.make CMakeFiles/tcp_client.dir/source/communication.cpp.i
+.PHONY : source/communication.cpp.i
+
+source/communication.s: source/communication.cpp.s
+
+.PHONY : source/communication.s
+
+# target to generate assembly for a file
+source/communication.cpp.s:
+	$(MAKE) -f CMakeFiles/tcp_client.dir/build.make CMakeFiles/tcp_client.dir/source/communication.cpp.s
+.PHONY : source/communication.cpp.s
+
 source/tcp_client.o: source/tcp_client.cpp.o
 
 .PHONY : source/tcp_client.o
@@ -159,6 +213,12 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... tcp_client"
+	@echo "... source/client_utils.o"
+	@echo "... source/client_utils.i"
+	@echo "... source/client_utils.s"
+	@echo "... source/communication.o"
+	@echo "... source/communication.i"
+	@echo "... source/communication.s"
 	@echo "... source/tcp_client.o"
 	@echo "... source/tcp_client.i"
 	@echo "... source/tcp_client.s"

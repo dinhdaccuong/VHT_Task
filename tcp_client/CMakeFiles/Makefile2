@@ -66,7 +66,7 @@ CMAKE_BINARY_DIR = /home/cuongd/CuongD/VHT_Task/tcp_client
 CMakeFiles/tcp_client.dir/all:
 	$(MAKE) -f CMakeFiles/tcp_client.dir/build.make CMakeFiles/tcp_client.dir/depend
 	$(MAKE) -f CMakeFiles/tcp_client.dir/build.make CMakeFiles/tcp_client.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/cuongd/CuongD/VHT_Task/tcp_client/CMakeFiles --progress-num=1,2 "Built target tcp_client"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/cuongd/CuongD/VHT_Task/tcp_client/CMakeFiles --progress-num=1,2,3,4 "Built target tcp_client"
 .PHONY : CMakeFiles/tcp_client.dir/all
 
 # Include target in all.
@@ -76,7 +76,7 @@ all: CMakeFiles/tcp_client.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/tcp_client.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/cuongd/CuongD/VHT_Task/tcp_client/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/cuongd/CuongD/VHT_Task/tcp_client/CMakeFiles 4
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/tcp_client.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/cuongd/CuongD/VHT_Task/tcp_client/CMakeFiles 0
 .PHONY : CMakeFiles/tcp_client.dir/rule

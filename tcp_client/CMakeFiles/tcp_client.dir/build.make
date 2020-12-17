@@ -57,9 +57,57 @@ include CMakeFiles/tcp_client.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/tcp_client.dir/flags.make
 
+CMakeFiles/tcp_client.dir/source/communication.cpp.o: CMakeFiles/tcp_client.dir/flags.make
+CMakeFiles/tcp_client.dir/source/communication.cpp.o: source/communication.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/cuongd/CuongD/VHT_Task/tcp_client/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/tcp_client.dir/source/communication.cpp.o"
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/tcp_client.dir/source/communication.cpp.o -c /home/cuongd/CuongD/VHT_Task/tcp_client/source/communication.cpp
+
+CMakeFiles/tcp_client.dir/source/communication.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/tcp_client.dir/source/communication.cpp.i"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/cuongd/CuongD/VHT_Task/tcp_client/source/communication.cpp > CMakeFiles/tcp_client.dir/source/communication.cpp.i
+
+CMakeFiles/tcp_client.dir/source/communication.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/tcp_client.dir/source/communication.cpp.s"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/cuongd/CuongD/VHT_Task/tcp_client/source/communication.cpp -o CMakeFiles/tcp_client.dir/source/communication.cpp.s
+
+CMakeFiles/tcp_client.dir/source/communication.cpp.o.requires:
+
+.PHONY : CMakeFiles/tcp_client.dir/source/communication.cpp.o.requires
+
+CMakeFiles/tcp_client.dir/source/communication.cpp.o.provides: CMakeFiles/tcp_client.dir/source/communication.cpp.o.requires
+	$(MAKE) -f CMakeFiles/tcp_client.dir/build.make CMakeFiles/tcp_client.dir/source/communication.cpp.o.provides.build
+.PHONY : CMakeFiles/tcp_client.dir/source/communication.cpp.o.provides
+
+CMakeFiles/tcp_client.dir/source/communication.cpp.o.provides.build: CMakeFiles/tcp_client.dir/source/communication.cpp.o
+
+
+CMakeFiles/tcp_client.dir/source/client_utils.cpp.o: CMakeFiles/tcp_client.dir/flags.make
+CMakeFiles/tcp_client.dir/source/client_utils.cpp.o: source/client_utils.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/cuongd/CuongD/VHT_Task/tcp_client/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/tcp_client.dir/source/client_utils.cpp.o"
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/tcp_client.dir/source/client_utils.cpp.o -c /home/cuongd/CuongD/VHT_Task/tcp_client/source/client_utils.cpp
+
+CMakeFiles/tcp_client.dir/source/client_utils.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/tcp_client.dir/source/client_utils.cpp.i"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/cuongd/CuongD/VHT_Task/tcp_client/source/client_utils.cpp > CMakeFiles/tcp_client.dir/source/client_utils.cpp.i
+
+CMakeFiles/tcp_client.dir/source/client_utils.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/tcp_client.dir/source/client_utils.cpp.s"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/cuongd/CuongD/VHT_Task/tcp_client/source/client_utils.cpp -o CMakeFiles/tcp_client.dir/source/client_utils.cpp.s
+
+CMakeFiles/tcp_client.dir/source/client_utils.cpp.o.requires:
+
+.PHONY : CMakeFiles/tcp_client.dir/source/client_utils.cpp.o.requires
+
+CMakeFiles/tcp_client.dir/source/client_utils.cpp.o.provides: CMakeFiles/tcp_client.dir/source/client_utils.cpp.o.requires
+	$(MAKE) -f CMakeFiles/tcp_client.dir/build.make CMakeFiles/tcp_client.dir/source/client_utils.cpp.o.provides.build
+.PHONY : CMakeFiles/tcp_client.dir/source/client_utils.cpp.o.provides
+
+CMakeFiles/tcp_client.dir/source/client_utils.cpp.o.provides.build: CMakeFiles/tcp_client.dir/source/client_utils.cpp.o
+
+
 CMakeFiles/tcp_client.dir/source/tcp_client.cpp.o: CMakeFiles/tcp_client.dir/flags.make
 CMakeFiles/tcp_client.dir/source/tcp_client.cpp.o: source/tcp_client.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/cuongd/CuongD/VHT_Task/tcp_client/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/tcp_client.dir/source/tcp_client.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/cuongd/CuongD/VHT_Task/tcp_client/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/tcp_client.dir/source/tcp_client.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/tcp_client.dir/source/tcp_client.cpp.o -c /home/cuongd/CuongD/VHT_Task/tcp_client/source/tcp_client.cpp
 
 CMakeFiles/tcp_client.dir/source/tcp_client.cpp.i: cmake_force
@@ -83,11 +131,15 @@ CMakeFiles/tcp_client.dir/source/tcp_client.cpp.o.provides.build: CMakeFiles/tcp
 
 # Object files for target tcp_client
 tcp_client_OBJECTS = \
+"CMakeFiles/tcp_client.dir/source/communication.cpp.o" \
+"CMakeFiles/tcp_client.dir/source/client_utils.cpp.o" \
 "CMakeFiles/tcp_client.dir/source/tcp_client.cpp.o"
 
 # External object files for target tcp_client
 tcp_client_EXTERNAL_OBJECTS =
 
+tcp_client: CMakeFiles/tcp_client.dir/source/communication.cpp.o
+tcp_client: CMakeFiles/tcp_client.dir/source/client_utils.cpp.o
 tcp_client: CMakeFiles/tcp_client.dir/source/tcp_client.cpp.o
 tcp_client: CMakeFiles/tcp_client.dir/build.make
 tcp_client: /usr/local/lib/libopencv_stitching.so.4.5.1
@@ -142,7 +194,7 @@ tcp_client: /usr/local/lib/libopencv_imgproc.so.4.5.1
 tcp_client: /usr/local/lib/libopencv_flann.so.4.5.1
 tcp_client: /usr/local/lib/libopencv_core.so.4.5.1
 tcp_client: CMakeFiles/tcp_client.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/cuongd/CuongD/VHT_Task/tcp_client/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable tcp_client"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/cuongd/CuongD/VHT_Task/tcp_client/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable tcp_client"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/tcp_client.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -150,6 +202,8 @@ CMakeFiles/tcp_client.dir/build: tcp_client
 
 .PHONY : CMakeFiles/tcp_client.dir/build
 
+CMakeFiles/tcp_client.dir/requires: CMakeFiles/tcp_client.dir/source/communication.cpp.o.requires
+CMakeFiles/tcp_client.dir/requires: CMakeFiles/tcp_client.dir/source/client_utils.cpp.o.requires
 CMakeFiles/tcp_client.dir/requires: CMakeFiles/tcp_client.dir/source/tcp_client.cpp.o.requires
 
 .PHONY : CMakeFiles/tcp_client.dir/requires

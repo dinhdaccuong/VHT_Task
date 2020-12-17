@@ -6,5 +6,5 @@ CXX_FLAGS =   -pthread -std=gnu++11
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -isystem /usr/local/include/opencv4 
+CXX_INCLUDES = -I/home/cuongd/CuongD/VHT_Task/tcp_client/./header -isystem /usr/local/include/opencv4 
 
